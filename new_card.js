@@ -1,10 +1,10 @@
 const app = require("./app");
-const newCardTemplate = require("./new_card_template");
-const sentCardTemplate = require("./sent_card_template");
-const chooseImageTemplate = require("./choose_image_template");
-const confirmImageTemplate = require("./confirm-image-template");
-
 const userService = require("./user_service");
+
+const newCardTemplate = require("./templates/new_card_template");
+const sentCardTemplate = require("./templates/sent_card_template");
+const chooseImageTemplate = require("./templates/choose_image_template");
+const confirmImageTemplate = require("./templates/confirm-image-template");
 
 module.exports = async ({ ack, say, body, client }) => {
   await ack();
