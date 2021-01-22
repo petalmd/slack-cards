@@ -1,14 +1,20 @@
 module.exports = () => {
   const header = {
-    "type": "plain_text",
-    "text": "Envoyer une carte de Saint-Valentin :heart:",
-    "emoji": true
-  };
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": "Envoyer une carte de Saint-Valentin :heart:",
+      "emoji": true
+    }
+  },
 
   const subtitle = {
-    "type": "mrkdwn",
-    "text": "Bonjour! Ici vous pourrez envoyer des cartes de Saint-Valentin à vos collègues et amis.\n"
-  };
+    "type": "section",
+    "text": {
+      "type": "mrkdwn",
+      "text": "Bonjour! Ici vous pourrez envoyer des cartes de Saint-Valentin à vos collègues et amis.\n"
+    }
+  },
 
   const divider = {
     "type": "divider"
@@ -32,41 +38,29 @@ module.exports = () => {
     }
   };
 
-  const images = [
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "Image 1"
-      },
-      "accessory": {
-        "type": "image",
-        "image_url": "https://pbs.twimg.com/profile_images/625633822235693056/lNGUneLX_400x400.jpg",
-        "alt_text": "cute cat"
-      }
-    },
-    {
-      "type": "section",
-      "text": {
-        "type": "mrkdwn",
-        "text": "Image 2"
-      },
-      "accessory": {
-        "type": "image",
-        "image_url": "https://www.smithsstationah.com/imagebank/eVetSites/Feline/01.jpg",
-        "alt_text": "cute cat 2"
-      }
-    }
-  ];
-
   const image = [{
     "type": "section",
+    "block_id": "block_image",
     "text": {
       "type": "mrkdwn",
       "text": "*Choisissez ensuite l'image de la carte*",
-    }
+    },
   },
-  ...images
+  {
+    "type": "actions",
+    "elements": [
+      {
+        "type": "button",
+        "text": {
+          "type": "plain_text",
+          "text": "Voir les images",
+          "emoji": true
+        },
+        "value": "choose_image",
+        "action_id": "choose_image-action"
+      }
+    ]
+  }
   ];
 
   const text = {
@@ -89,17 +83,9 @@ module.exports = () => {
   };
 
   const blocks = [
-    {
-      "type": "header",
-      "text": header,
-    },
-    {
-      "type": "section",
-      "text": subtitle,
-    },
-    {
-      ...recipient
-    },
+    header,
+    subtitle,
+    recipient,
     divider,
     ...image,
     divider,

@@ -1,6 +1,9 @@
 const app = require("./app");
 const newCardTemplate = require("./new_card_template");
 const sentCardTemplate = require("./sent_card_template");
+const chooseImageTemplate = require("./choose_image_template");
+const confirmImageTemplate = require("./confirm-image-template");
+
 const userService = require("./user_service");
 
 module.exports = async ({ ack, say, body, client }) => {
@@ -13,9 +16,12 @@ module.exports = async ({ ack, say, body, client }) => {
     message: 'NOPE',
   }
 
+  let homeView;
+  let imageView;
+
   try {
     // Call views.open with the built-in client
-    const result = await client.views.open({
+    homeView = await client.views.open({
       // Pass a valid trigger_id within 3 seconds of receiving it
       trigger_id: body.trigger_id,
       view: newCardTemplate(),
@@ -33,7 +39,6 @@ module.exports = async ({ ack, say, body, client }) => {
 
   // Handle a view_submission event
   app.view('new_card_modal', async ({ ack, body, view, client}) => {
-
     try {
       await ack();
       console.log(newCard);
@@ -68,8 +73,8 @@ module.exports = async ({ ack, say, body, client }) => {
   });
 
   app.action('plain_text_input-action', async ({ ack, body, view }) => {
+    await ack();
     try {
-      await ack();
       newCard.message = body['actions'][0]['value'];
     }
     catch (error) {
@@ -77,15 +82,40 @@ module.exports = async ({ ack, say, body, client }) => {
     }
   });
 
-  // app.action('approve_button', async ({ ack, say }) => {
-  //   try {
-  //     await client.chat.postMessage({
-  //       channel: newCard.recipient,
-  //       text: newCard.message
-  //     });
-  //   }
-  //   catch (error) {
-  //     console.error(error);
-  //   }
-  // });
+  app.action('choose_image-action', async ({ ack, say, body }) => {
+    await ack();
+    try {
+      imageView = await client.views.push({
+        trigger_id: body.trigger_id,
+        view: chooseImageTemplate(),
+      });
+    }
+    catch (error) {
+      console.error(error);
+    }
+  });
+
+  app.view({ callback_id: 'confirm_image_modal', type: 'view_closed' }, async ({ ack, view }) => {
+    await ack();
+    try {
+      newCard.image = view.blocks[1].image_url;
+      // updater la new card template avec l'image
+    } catch(error) {
+      console.log(error);
+    }
+  });
+
+  app.action('carte-action', async ({ ack, body, client }) => {
+    await ack();
+    try {
+      const result = await client.views.update({
+        view_id: body.view.id,
+        trigger_id: body.trigger_id,
+        hash: body.view.hash,
+        view: confirmImageTemplate(),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  });
 };
