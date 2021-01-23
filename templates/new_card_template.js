@@ -100,6 +100,8 @@ module.exports = (imageUrl = null) => {
     "element": {
       "type": "plain_text_input",
       "multiline": true,
+      "min_length": 5,
+      "max_length": 3000,
       "action_id": "plain_text_input-action",
       "dispatch_action_config": {
         "trigger_actions_on": ["on_character_entered"]
@@ -107,7 +109,7 @@ module.exports = (imageUrl = null) => {
     },
     "label": {
       "type": "plain_text",
-      "text": "Finalement, écrivez un texte personnalisé",
+      "text": "Finalement, écrivez un texte personnalisé (les emojis sont acceptés, mais n'apparaîtront pas dans le preview)",
       "emoji": true
     }
   };
@@ -125,7 +127,6 @@ module.exports = (imageUrl = null) => {
   return {
     "type": "modal",
     "callback_id": 'new_card_modal',
-    "notify_on_close": true,
     "clear_on_close": true,
     "title": {
       "type": "plain_text",

@@ -17,7 +17,7 @@ module.exports = (imageUrl) => {
         type: 'section',
         text: {
           type: 'plain_text',
-          text: 'Image choisie'
+          text: 'Image choisie :white_check_mark:'
         }
       },
       {
