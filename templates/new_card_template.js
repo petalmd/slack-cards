@@ -1,4 +1,4 @@
-module.exports = () => {
+module.exports = (imageUrl = null) => {
   const header = {
     "type": "header",
     "text": {
@@ -6,7 +6,7 @@ module.exports = () => {
       "text": "Envoyer une carte de Saint-Valentin :heart:",
       "emoji": true
     }
-  },
+  };
 
   const subtitle = {
     "type": "section",
@@ -14,7 +14,7 @@ module.exports = () => {
       "type": "mrkdwn",
       "text": "Bonjour! Ici vous pourrez envoyer des cartes de Saint-Valentin à vos collègues et amis.\n"
     }
-  },
+  };
 
   const divider = {
     "type": "divider"
@@ -38,7 +38,7 @@ module.exports = () => {
     }
   };
 
-  const image = [{
+  const noImageChosen = [{
     "type": "section",
     "block_id": "block_image",
     "text": {
@@ -60,8 +60,38 @@ module.exports = () => {
         "action_id": "choose_image-action"
       }
     ]
-  }
-  ];
+  }];
+
+  const imageChosen = [{
+    "type": "section",
+    "block_id": "block_image",
+    "text": {
+      "type": "mrkdwn",
+      "text": "*Vous avez choisi cette image* \nPour changer votre sélection, cliquez sur _Choisir une autre image_ (vous ne perdrez pas vos modifications en changeant de page).",
+    },
+    "accessory": {
+      "type": "image",
+      "image_url": imageUrl,
+      "alt_text": "Image choisie"
+    }
+  },
+  {
+    "type": "actions",
+    "elements": [
+      {
+        "type": "button",
+        "text": {
+          "type": "plain_text",
+          "text": "Choisir une autre image",
+          "emoji": true
+        },
+        "value": "choose_image",
+        "action_id": "choose_image-action"
+      }
+    ]
+  }];
+
+  const image = imageUrl ? imageChosen : noImageChosen;
 
   const text = {
     "type": "input",
@@ -95,19 +125,21 @@ module.exports = () => {
   return {
     "type": "modal",
     "callback_id": 'new_card_modal',
+    "notify_on_close": true,
+    "clear_on_close": true,
     "title": {
       "type": "plain_text",
-      "text": "New card",
+      "text": "Nouvelle carte",
       "emoji": true
     },
     "submit": {
       "type": "plain_text",
-      "text": "Send :love_letter:",
+      "text": "Envoyer :love_letter:",
       "emoji": true
     },
     "close": {
       "type": "plain_text",
-      "text": "Cancel",
+      "text": "Annuler",
       "emoji": true
     },
     "blocks": blocks

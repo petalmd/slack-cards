@@ -17,7 +17,7 @@ module.exports = () => {
         }
       ]
     }
-  }
+  };
 
   const images = [
     {
@@ -52,7 +52,7 @@ module.exports = () => {
     "callback_id": 'choose_image_modal',
     "title": {
       "type": "plain_text",
-      "text": "Choisir l'image de la carte",
+      "text": "Choisir l'image",
       "emoji": true
     },
     "blocks":  imageBlocks,

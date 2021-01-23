@@ -6,7 +6,7 @@ const sentCardTemplate = require("./templates/sent_card_template");
 const chooseImageTemplate = require("./templates/choose_image_template");
 const confirmImageTemplate = require("./templates/confirm-image-template");
 
-module.exports = async ({ ack, say, body, client }) => {
+module.exports = async ({ ack, body, client }) => {
   await ack();
   const newCard = {
     recipient: null,
@@ -38,11 +38,9 @@ module.exports = async ({ ack, say, body, client }) => {
   });
 
   // Handle a view_submission event
-  app.view('new_card_modal', async ({ ack, body, view, client}) => {
+  app.view('new_card_modal', async ({ ack, client}) => {
+    await ack();
     try {
-      await ack();
-      console.log(newCard);
-
       await client.chat.postMessage({
         channel: newCard.recipientId,
         blocks: sentCardTemplate(newCard.recipient, newCard.sender, 'https://images.martechadvisor.com/images/uploads/content_images/shutterstock_1286561869_1_5e381810ec99b.jpg', newCard.message),
@@ -53,10 +51,9 @@ module.exports = async ({ ack, say, body, client }) => {
     }
   });
 
-  app.action('users_select-action', async ({ ack, body, view }) => {
+  app.action('users_select-action', async ({ ack, body }) => {
+    await ack();
     try {
-      await ack();
-
       const selectedUserId = body['actions'][0]['selected_user'];
 
       userService(client).getUserById(selectedUserId).then((selectedUser) => {
@@ -72,7 +69,7 @@ module.exports = async ({ ack, say, body, client }) => {
     }
   });
 
-  app.action('plain_text_input-action', async ({ ack, body, view }) => {
+  app.action('plain_text_input-action', async ({ ack, body }) => {
     await ack();
     try {
       newCard.message = body['actions'][0]['value'];
@@ -82,7 +79,7 @@ module.exports = async ({ ack, say, body, client }) => {
     }
   });
 
-  app.action('choose_image-action', async ({ ack, say, body }) => {
+  app.action('choose_image-action', async ({ ack, body, client }) => {
     await ack();
     try {
       imageView = await client.views.push({
@@ -95,14 +92,24 @@ module.exports = async ({ ack, say, body, client }) => {
     }
   });
 
-  app.view({ callback_id: 'confirm_image_modal', type: 'view_closed' }, async ({ ack, view }) => {
+  app.view({ callback_id: 'confirm_image_modal', type: 'view_closed' }, async ({ ack, view, client }) => {
     await ack();
+
     try {
       newCard.image = view.blocks[1].image_url;
-      // updater la new card template avec l'image
+      const result = await client.views.update({
+        view_id: homeView.view.id,
+        trigger_id: body.trigger_id,
+        view: newCardTemplate(newCard.image),
+      });
     } catch(error) {
       console.log(error);
     }
+  });
+
+  app.view({ callback_id: 'new_card_modal', type: 'view_closed' }, async ({ ack }) => {
+    await ack();
+    console.log('cleared!');
   });
 
   app.action('carte-action', async ({ ack, body, client }) => {
@@ -112,7 +119,7 @@ module.exports = async ({ ack, say, body, client }) => {
         view_id: body.view.id,
         trigger_id: body.trigger_id,
         hash: body.view.hash,
-        view: confirmImageTemplate(),
+        view: confirmImageTemplate(body.actions[0].value),
       });
     } catch (error) {
       console.log(error);

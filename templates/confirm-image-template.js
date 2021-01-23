@@ -1,4 +1,4 @@
-module.exports = () => {
+module.exports = (imageUrl) => {
   return {
     type: 'modal',
     callback_id: 'confirm_image_modal',
@@ -23,7 +23,7 @@ module.exports = () => {
       {
         type: 'image',
         block_id: 'chosen_image',
-        image_url: body.actions[0].value,
+        image_url: imageUrl,
         alt_text: 'Image choisie'
       }
     ]
