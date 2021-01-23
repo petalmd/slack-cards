@@ -1,12 +1,13 @@
 {
-  "name": "valentinesdaycardapp",
+  "name": "valentines-day-card-app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
+    "ngrok": "ngrok http 3000",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "@slack/bolt": "^3.0.0"
