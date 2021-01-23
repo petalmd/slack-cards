@@ -13,16 +13,14 @@ module.exports = async ({ ack, body, client }) => {
     recipientId: null,
     sender: null,
     image: null,
-    message: 'NOPE',
+    message: null,
   }
 
   let homeView;
   let imageView;
 
   try {
-    // Call views.open with the built-in client
     homeView = await client.views.open({
-      // Pass a valid trigger_id within 3 seconds of receiving it
       trigger_id: body.trigger_id,
       view: newCardTemplate(),
     });
@@ -43,7 +41,7 @@ module.exports = async ({ ack, body, client }) => {
     try {
       await client.chat.postMessage({
         channel: newCard.recipientId,
-        blocks: sentCardTemplate(newCard.recipient, newCard.sender, 'https://images.martechadvisor.com/images/uploads/content_images/shutterstock_1286561869_1_5e381810ec99b.jpg', newCard.message),
+        blocks: sentCardTemplate(newCard.recipient, newCard.sender, newCard.image, newCard.message),
       });
     }
     catch (error) {
