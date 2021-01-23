@@ -26,11 +26,31 @@ module.exports = () => {
     },
     {
       name: 'carte2',
-      url: 'https://i.imgur.com/UfrJSSY.jpeg'
+      url: 'https://i.imgur.com/yDzrniQ.jpg'
     },
     {
       name: 'carte3',
-      url: 'https://i.imgur.com/UfrJSSY.jpeg'
+      url: 'https://i.imgur.com/btsgZGT.jpg'
+    },
+    {
+      name: 'carte4',
+      url: 'https://i.imgur.com/g5nQNXM.jpg'
+    },
+    {
+      name: 'carte5',
+      url: 'https://i.imgur.com/CFXkcCZ.jpg'
+    },
+    {
+      name: 'carte6',
+      url: 'https://i.imgur.com/LfOEmCt.jpg'
+    },
+    {
+      name: 'carte7',
+      url: 'https://i.imgur.com/yZsfJbl.jpg'
+    },
+    {
+      name: 'carte8',
+      url: 'https://i.imgur.com/emu2yvl.jpg'
     }
   ];
 
