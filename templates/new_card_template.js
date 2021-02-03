@@ -1,9 +1,9 @@
-module.exports = (imageUrl = null) => {
+module.exports = (error = false, imageUrl = null) => {
   const header = {
     "type": "header",
     "text": {
       "type": "plain_text",
-      "text": "Envoyer une carte de Saint-Valentin :heart:",
+      "text": "Envoyer une carte de Saint-Valentin :wave: :heart: :love_letter:",
       "emoji": true
     }
   };
@@ -11,8 +11,8 @@ module.exports = (imageUrl = null) => {
   const subtitle = {
     "type": "section",
     "text": {
-      "type": "mrkdwn",
-      "text": "Bonjour! Ici vous pourrez envoyer des cartes de Saint-Valentin à vos collègues et amis.\n"
+      "type": "plain_text",
+      "text": "Ici vous pouvez envoyer des cartes de Saint-Valentin à vos collègues et amis. C'est presque pareil comme le courrier du cœur, mais sur Slack!",
     }
   };
 
@@ -31,7 +31,7 @@ module.exports = (imageUrl = null) => {
       "type": "users_select",
       "placeholder": {
         "type": "plain_text",
-        "text": "Select a user",
+        "text": "Sélectionner",
         "emoji": true
       },
       "action_id": "users_select-action"
@@ -91,7 +91,18 @@ module.exports = (imageUrl = null) => {
     ]
   }];
 
-  const image = imageUrl ? imageChosen : noImageChosen;
+  const image = imageUrl?.length ? imageChosen : noImageChosen;
+
+  const errorBlock = {
+    "type": "context",
+    "elements": [
+      {
+        "type": "plain_text",
+        "text": ":warning: Vous devez sélectionner une image",
+        "emoji": true
+      }
+    ]
+  };
 
   const text = {
     "type": "input",
@@ -100,6 +111,11 @@ module.exports = (imageUrl = null) => {
     "element": {
       "type": "plain_text_input",
       "multiline": true,
+      "placeholder": {
+        "type": "plain_text",
+        "text": "Écrivez ici",
+        "emoji": true
+      },
       "min_length": 5,
       "max_length": 3000,
       "action_id": "plain_text_input-action",
@@ -109,7 +125,7 @@ module.exports = (imageUrl = null) => {
     },
     "label": {
       "type": "plain_text",
-      "text": "Finalement, écrivez un texte personnalisé (les emojis sont acceptés, mais n'apparaîtront pas dans le preview)",
+      "text": "Finalement, écrivez un texte personnalisé",
       "emoji": true
     }
   };
@@ -124,10 +140,14 @@ module.exports = (imageUrl = null) => {
     text,
   ];
 
+  if (error) {
+    blocks.push(errorBlock);
+    blocks;
+  }
+
   return {
     "type": "modal",
     "callback_id": 'new_card_modal',
-    "clear_on_close": true,
     "title": {
       "type": "plain_text",
       "text": "Nouvelle carte",

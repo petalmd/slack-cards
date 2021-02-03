@@ -1,4 +1,5 @@
 const { App } = require('@slack/bolt');
+
 const sentCardTemplate = require("./templates/sent_card_template");
 const chooseImageTemplate = require("./templates/choose_image_template");
 const confirmImageTemplate = require("./templates/confirm-image-template");
@@ -6,7 +7,7 @@ const newCardTemplate = require("./templates/new_card_template");
 
 let homeView;
 
-const newCard = {
+let newCard = {
   recipient: null,
   recipientId: null,
   sender: null,
@@ -21,6 +22,28 @@ const app = new App({
 
 // COMMANDS
 app.command('/valentinescard', async ({ ack, body, client }) => {
+  newCard.image = null;
+  await ack();
+  try {
+    homeView = await client.views.open({
+      trigger_id: body.trigger_id,
+      view: newCardTemplate(),
+    });
+  }
+  catch (error) {
+    console.error(error);
+  }
+
+  client.users.profile.get({ user: body.user_id }).then((currentUser) => {
+    newCard.sender = currentUser.profile.real_name_normalized;
+  }, (err) => {
+    console.log(err)
+  });
+});
+
+// SHORTCUTS
+app.shortcut('create_card_shortcut', async ({ ack, body, client }) => {
+  newCard.image = null;
   await ack();
   try {
     homeView = await client.views.open({
@@ -40,16 +63,36 @@ app.command('/valentinescard', async ({ ack, body, client }) => {
 });
 
 // VIEWS
-app.view('new_card_modal', async ({ ack, client }) => {
-  await ack();
-  try {
-    await client.chat.postMessage({
-      channel: newCard.recipientId,
-      blocks: sentCardTemplate(newCard.recipient, newCard.sender, newCard.image, newCard.message),
-    });
-  }
-  catch (error) {
-    console.error(error);
+app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ack, body, view, client }) => {
+  if (!!newCard.image && newCard.image.length > 10) {
+    await ack();
+
+    try {
+      await client.chat.postMessage({
+        channel: newCard.recipientId,
+        blocks: sentCardTemplate(newCard.recipient, newCard.sender, newCard.image, newCard.message),
+      });
+    }
+    catch (error) {
+      console.error(error);
+    }
+  } else {
+    try {
+      await ack({
+        response_action: 'errors',
+        errors: {
+          'block_image': 'You must select an image'
+        }
+      });
+
+      await client.views.update({
+        view_id: homeView.view.id,
+        trigger_id: body.trigger_id,
+        view: newCardTemplate(true),
+      });
+    } catch(error) {
+      console.log(error);
+    }
   }
 });
 
@@ -61,7 +104,7 @@ app.view({ callback_id: 'confirm_image_modal', type: 'view_closed' }, async ({ a
     const result = await client.views.update({
       view_id: homeView.view.id,
       trigger_id: body.trigger_id,
-      view: newCardTemplate(newCard.image),
+      view: newCardTemplate(false, newCard.image),
     });
   } catch(error) {
     console.log(error);
