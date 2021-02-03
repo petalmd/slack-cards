@@ -1,18 +1,10 @@
 const { App } = require('@slack/bolt');
-const { Pool } = require('pg');
 
+const database = require("./database");
 const sentCardTemplate = require("./templates/sent_card_template");
 const chooseImageTemplate = require("./templates/choose_image_template");
 const confirmImageTemplate = require("./templates/confirm-image-template");
 const newCardTemplate = require("./templates/new_card_template");
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/slackcards',
-  // ssl: {
-  //   rejectUnauthorized: false,
-  // }
-  ssl: process.env.DATABASE_URL ? true : false
-});
 
 let homeView;
 
@@ -20,6 +12,7 @@ let newCard = {
   recipient: null,
   recipientId: null,
   sender: null,
+  senderId: null,
   image: null,
   message: null,
 }
@@ -43,6 +36,7 @@ app.command('/valentinescard', async ({ ack, body, client }) => {
     console.error(error);
   }
 
+  newCard.senderId = body.user_id;
   client.users.profile.get({ user: body.user_id }).then((currentUser) => {
     newCard.sender = currentUser.profile.real_name_normalized;
   }, (err) => {
@@ -72,17 +66,20 @@ app.shortcut('create_card_shortcut', async ({ ack, body, client }) => {
 });
 
 // VIEWS
-app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ack, body, view, client }) => {
+app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ack, body, client }) => {
   if (!!newCard.image && newCard.image.length > 10) {
     await ack();
 
     try {
+      console.log(newCard);
       await client.chat.postMessage({
         channel: newCard.recipientId,
         blocks: sentCardTemplate(newCard.recipient, newCard.sender, newCard.image, newCard.message),
       });
-    }
-    catch (error) {
+      await database().addCardToStats(newCard).then((output) => {
+        console.log(output);
+      });
+    } catch (error) {
       console.error(error);
     }
   } else {
@@ -176,21 +173,7 @@ app.action('carte-action', async ({ ack, body, client }) => {
   }
 });
 
-async function initDb() {
-  try {
-    const client = await pool.connect();
-    const result = await client.query('SELECT * FROM cards');
-    const results = { 'results': (result) ? result.rows : null};
-    console.log(results);
-    client.release();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
 (async () => {
   await app.start(process.env.PORT || 3000);
-  initDb();
-
   console.log('⚡️ Bolt app is running!');
 })();
