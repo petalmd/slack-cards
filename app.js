@@ -1,9 +1,18 @@
 const { App } = require('@slack/bolt');
+const { Pool } = require('pg');
 
 const sentCardTemplate = require("./templates/sent_card_template");
 const chooseImageTemplate = require("./templates/choose_image_template");
 const confirmImageTemplate = require("./templates/confirm-image-template");
 const newCardTemplate = require("./templates/new_card_template");
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/slackcards',
+  // ssl: {
+  //   rejectUnauthorized: false,
+  // }
+  ssl: process.env.DATABASE_URL ? true : false
+});
 
 let homeView;
 
@@ -167,7 +176,21 @@ app.action('carte-action', async ({ ack, body, client }) => {
   }
 });
 
+async function initDb() {
+  try {
+    const client = await pool.connect();
+    const result = await client.query('SELECT * FROM cards');
+    const results = { 'results': (result) ? result.rows : null};
+    console.log(results);
+    client.release();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 (async () => {
   await app.start(process.env.PORT || 3000);
+  initDb();
+
   console.log('⚡️ Bolt app is running!');
 })();
