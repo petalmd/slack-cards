@@ -7,6 +7,7 @@ const sentCardTemplate = require("./templates/sent_card_template");
 const chooseImageTemplate = require("./templates/choose_image_template");
 const confirmImageTemplate = require("./templates/confirm-image-template");
 const newCardTemplate = require("./templates/new_card_template");
+const homeTemplate = require('./templates/home_template');
 
 let homeView;
 
@@ -26,10 +27,8 @@ const app = new App({
   receiver,
 });
 
-// COMMANDS
-app.command('/carte-de-saint-valentin', async ({ ack, body, client }) => {
+openModal = async({ body, client }) => {
   newCard.image = null;
-  await ack();
   try {
     homeView = await client.views.open({
       trigger_id: body.trigger_id,
@@ -39,13 +38,21 @@ app.command('/carte-de-saint-valentin', async ({ ack, body, client }) => {
   catch (error) {
     console.error(error);
   }
-
   newCard.senderId = body.user_id;
   client.users.profile.get({ user: body.user_id }).then((currentUser) => {
+    // TODO remove after debugging
+    console.log(currentUser.profile.real_name_normalized);
+
     newCard.sender = currentUser.profile.real_name_normalized;
   }, (err) => {
     console.log(err)
   });
+}
+
+// COMMANDS
+app.command('/carte-de-saint-valentin', async ({ ack, body, client }) => {
+  await ack();
+  openModal({ body, client });
 });
 
 // VIEWS
@@ -153,6 +160,26 @@ app.action('carte-action', async ({ ack, body, client }) => {
     });
   } catch (error) {
     console.log(error);
+  }
+});
+
+app.action('open_modal-action', async ({ ack, body, client }) => {
+  await ack();
+  openModal({ body, client });
+});
+
+// EVENTS
+app.event('app_home_opened', async ({ event, client }) => {
+  try {
+    const result = await client.views.publish({
+      user_id: event.user,
+      view: homeTemplate(event.user)
+    });
+
+    console.log(result);
+  }
+  catch (error) {
+    console.error(error);
   }
 });
 
