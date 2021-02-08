@@ -27,7 +27,7 @@ const app = new App({
 });
 
 // COMMANDS
-app.command('/valentinescard', async ({ ack, body, client }) => {
+app.command('/carte-de-saint-valentin', async ({ ack, body, client }) => {
   newCard.image = null;
   await ack();
   try {
@@ -91,7 +91,7 @@ app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ac
       await ack({
         response_action: 'errors',
         errors: {
-          'block_image': 'You must select an image'
+          'block_image': 'Vous devez sélectionner une image'
         }
       });
 
