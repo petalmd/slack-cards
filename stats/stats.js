@@ -14,6 +14,7 @@ function createTemplate(resultsArray) {
 module.exports = async(database, router) => {
   let resultsArray = [];
   await database().getRows().then((data) => {
+    console.log(data);
     resultsArray = data.results;
   });
 
