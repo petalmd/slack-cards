@@ -48,27 +48,6 @@ app.command('/carte-de-saint-valentin', async ({ ack, body, client }) => {
   });
 });
 
-// SHORTCUTS
-app.shortcut('create_card_shortcut', async ({ ack, body, client }) => {
-  newCard.image = null;
-  await ack();
-  try {
-    homeView = await client.views.open({
-      trigger_id: body.trigger_id,
-      view: newCardTemplate(),
-    });
-  }
-  catch (error) {
-    console.error(error);
-  }
-
-  client.users.profile.get({ user: body.user_id }).then((currentUser) => {
-    newCard.sender = currentUser.profile.real_name_normalized;
-  }, (err) => {
-    console.log(err)
-  });
-});
-
 // VIEWS
 app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ack, body, client }) => {
   if (!!newCard.image && newCard.image.length > 10) {
@@ -179,6 +158,6 @@ app.action('carte-action', async ({ ack, body, client }) => {
 
 (async () => {
   await app.start(process.env.PORT || 3000);
-  stats(database, receiver.router);
+  stats(database, receiver.router, app.client);
   console.log('⚡️ Bolt app is running!');
 })();

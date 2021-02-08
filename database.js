@@ -3,10 +3,10 @@ const { Pool } = require('pg');
 module.exports = () => {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/slackcards',
-    ssl: {
-      rejectUnauthorized: false,
-    }
-    // ssl: process.env.DATABASE_URL ? true : false
+    // ssl: {
+    //   rejectUnauthorized: false,
+    // }
+    ssl: process.env.DATABASE_URL ? true : false
   });
 
   return {
@@ -19,17 +19,34 @@ module.exports = () => {
         let result = await client.query(insertText, [newCard.senderId, newCard.recipientId, now])
 
         client.release();
-
         return result;
       } catch (err) {
         return err;
       }
     },
-    getRows: async () => {
+    getMostPopularRecipient: async () => {
       try {
         const client = await pool.connect();
-        result = await client.query('SELECT * FROM cards');
-
+        result = await client.query(`
+          SELECT * FROM
+          (SELECT receiver_id, count(*) FROM cards
+          GROUP BY receiver_id
+          ORDER BY count desc) AS groupByReceiver
+          `);
+        return { 'results': (result) ? result.rows : null};
+      } catch (err) {
+        return err;
+      }
+    },
+    getMostProlificSender: async () => {
+      try {
+        const client = await pool.connect();
+        result = await client.query(`
+          SELECT * FROM
+          (SELECT sender_id, count(*) FROM cards
+          GROUP BY sender_id
+          ORDER BY count desc) AS groupBySender
+          `);
         return { 'results': (result) ? result.rows : null};
       } catch (err) {
         return err;
