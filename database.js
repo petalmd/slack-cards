@@ -18,12 +18,19 @@ module.exports = () => {
         const insertText = 'INSERT INTO cards(sender_id, receiver_id, sent_on) VALUES ($1, $2, $3)';
         let result = await client.query(insertText, [newCard.senderId, newCard.recipientId, now])
 
-        // result = await client.query('SELECT * FROM cards');
-        // const results = { 'results': (result) ? result.rows : null};
-
         client.release();
 
         return result;
+      } catch (err) {
+        return err;
+      }
+    },
+    getRows: async () => {
+      try {
+        const client = await pool.connect();
+        result = await client.query('SELECT * FROM cards');
+
+        return { 'results': (result) ? result.rows : null};
       } catch (err) {
         return err;
       }
