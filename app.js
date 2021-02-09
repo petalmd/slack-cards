@@ -38,11 +38,9 @@ openModal = async({ body, client }) => {
   catch (error) {
     console.error(error);
   }
-  newCard.senderId = body.user_id;
-  client.users.profile.get({ user: body.user_id }).then((currentUser) => {
-    // TODO remove after debugging
-    console.log(currentUser.profile.real_name_normalized);
 
+  newCard.senderId = body.user_id || body.user?.id;
+  client.users.profile.get({ user: newCard.senderId }).then((currentUser) => {
     newCard.sender = currentUser.profile.real_name_normalized;
   }, (err) => {
     console.log(err)

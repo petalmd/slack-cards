@@ -3,10 +3,10 @@ const { Pool } = require('pg');
 module.exports = () => {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/slackcards',
-    // ssl: {
-    //   rejectUnauthorized: false,
-    // }
-    ssl: process.env.DATABASE_URL ? true : false
+    ssl: {
+      rejectUnauthorized: false,
+    }
+    // ssl: process.env.DATABASE_URL ? true : false
   });
 
   return {
