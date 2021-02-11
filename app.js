@@ -34,6 +34,7 @@ const app = new App({
   scopes: ['channels:history', 'commands', 'groups:history', 'im:history', 'chat:write', 'users.profile:read'],
   installationStore: {
     storeInstallation: async (installation) => {
+      console.log('AM I HERE?!');
       // if (installation.isEnterpriseInstall) {
       //   return await database.set(installation.enterprise.id, installation);
       // } else {
@@ -42,6 +43,7 @@ const app = new App({
       throw new Error('Failed saving installation data to installationStore');
     },
     fetchInstallation: async (installQuery) => {
+      console.log('OR HERE?!');
       // if (installQuery.isEnterpriseInstall && installQuery.enterpriseId !== undefined) {
       //   return await database.get(installQuery.enterpriseId);
       // }
