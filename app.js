@@ -32,6 +32,25 @@ const app = new App({
   clientSecret: process.env.SLACK_CLIENT_SECRET,
   stateSecret: process.env.STATE_SECRET,
   scopes: ['channels:history', 'commands', 'groups:history', 'im:history', 'chat:write', 'users.profile:read'],
+  installationStore: {
+    storeInstallation: async (installation) => {
+      // if (installation.isEnterpriseInstall) {
+      //   return await database.set(installation.enterprise.id, installation);
+      // } else {
+      //   return await database.set(installation.team.id, installation);
+      // }
+      throw new Error('Failed saving installation data to installationStore');
+    },
+    fetchInstallation: async (installQuery) => {
+      // if (installQuery.isEnterpriseInstall && installQuery.enterpriseId !== undefined) {
+      //   return await database.get(installQuery.enterpriseId);
+      // }
+      // if (installQuery.teamId !== undefined) {
+      //   return await database.get(installQuery.teamId);
+      // }
+      throw new Error('Failed fetching installation');
+    },
+  }
 });
 
 openModal = async({ body, client }) => {
