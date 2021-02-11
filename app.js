@@ -20,7 +20,10 @@ let newCard = {
   message: null,
 };
 
-const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_SECRET });
+const receiver = new ExpressReceiver({
+  signingSecret: process.env.SLACK_SIGNING_SECRET,
+  endpoints: '/slack/events',
+});
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
