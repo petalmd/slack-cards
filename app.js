@@ -25,6 +25,10 @@ const receiver = new ExpressReceiver({ signingSecret: process.env.SLACK_SIGNING_
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver,
+  clientId: process.env.SLACK_CLIENT_ID,
+  clientSecret: process.env.SLACK_CLIENT_SECRET,
+  stateSecret: process.env.STATE_SECRET,
+  scopes: ['channels:history', 'commands', 'groups:history', 'im:history', 'chat:write', 'users.profile:read'],
 });
 
 openModal = async({ body, client }) => {
@@ -184,5 +188,6 @@ app.event('app_home_opened', async ({ event, client }) => {
 (async () => {
   await app.start(process.env.PORT || 3000);
   stats(database, receiver.router, app.client);
+  console.log(app);
   console.log('⚡️ Bolt app is running!');
 })();
