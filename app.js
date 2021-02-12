@@ -1,7 +1,7 @@
 const { App, ExpressReceiver } = require('@slack/bolt');
 
 const database = require("./database");
-const stats = require("./stats/stats");
+// const stats = require("./stats/stats");
 
 const sentCardTemplate = require("./templates/sent_card_template");
 const chooseImageTemplate = require("./templates/choose_image_template");
@@ -11,15 +11,6 @@ const homeTemplate = require('./templates/home_template');
 
 let homeView;
 
-let newCard = {
-  recipient: null,
-  recipientId: null,
-  sender: null,
-  senderId: null,
-  image: null,
-  message: null,
-};
-
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   endpoints: '/slack/events',
@@ -28,35 +19,9 @@ const receiver = new ExpressReceiver({
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver,
-  clientId: process.env.SLACK_CLIENT_ID,
-  clientSecret: process.env.SLACK_CLIENT_SECRET,
-  stateSecret: process.env.STATE_SECRET,
-  scopes: ['channels:history', 'commands', 'groups:history', 'im:history', 'chat:write', 'users.profile:read'],
-  installationStore: {
-    storeInstallation: async (installation) => {
-      console.log('AM I HERE?!');
-      // if (installation.isEnterpriseInstall) {
-      //   return await database.set(installation.enterprise.id, installation);
-      // } else {
-      //   return await database.set(installation.team.id, installation);
-      // }
-      throw new Error('Failed saving installation data to installationStore');
-    },
-    fetchInstallation: async (installQuery) => {
-      console.log('OR HERE?!');
-      // if (installQuery.isEnterpriseInstall && installQuery.enterpriseId !== undefined) {
-      //   return await database.get(installQuery.enterpriseId);
-      // }
-      // if (installQuery.teamId !== undefined) {
-      //   return await database.get(installQuery.teamId);
-      // }
-      throw new Error('Failed fetching installation');
-    },
-  }
 });
 
 openModal = async({ body, client }) => {
-  newCard.image = null;
   try {
     homeView = await client.views.open({
       trigger_id: body.trigger_id,
@@ -66,13 +31,7 @@ openModal = async({ body, client }) => {
   catch (error) {
     console.error(error);
   }
-
-  newCard.senderId = body.user_id || body.user?.id;
-  client.users.profile.get({ user: newCard.senderId }).then((currentUser) => {
-    newCard.sender = currentUser.profile.real_name_normalized;
-  }, (err) => {
-    console.log(err)
-  });
+  database().addInitialCard(body.user_id || body.user?.id);
 }
 
 // COMMANDS
@@ -83,38 +42,53 @@ app.command('/carte-de-saint-valentin', async ({ ack, body, client }) => {
 
 // VIEWS
 app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ack, body, client }) => {
-  if (!!newCard.image && newCard.image.length > 10) {
-    await ack();
+  try {
+    await database().getLastUpdatedCardFromUser(body.user.id).then( async (data) => {
+      newCardFromBD = data[0];
 
-    try {
-      console.log(newCard);
-      await client.chat.postMessage({
-        channel: newCard.recipientId,
-        blocks: sentCardTemplate(newCard.recipient, newCard.sender, newCard.image, newCard.message),
-      });
-      await database().addCardToStats(newCard).then((output) => {
-        console.log(output);
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  } else {
-    try {
-      await ack({
-        response_action: 'errors',
-        errors: {
-          'block_image': 'Vous devez sélectionner une image'
+      if (newCardFromBD.receiver_id && newCardFromBD.image && newCardFromBD.text) {
+        await ack();
+        await client.users.profile.get({ user: newCardFromBD.sender_id }).then( async (currentUser) => {
+          newCardFromBD.sender = currentUser.profile.real_name_normalized;
+
+          await client.users.profile.get({ user: newCardFromBD.receiver_id }).then( async (currentUser) => {
+            newCardFromBD.receiver = currentUser.profile.real_name_normalized;
+
+            await client.chat.postMessage({
+              channel: newCardFromBD.receiver_id,
+              blocks: sentCardTemplate(newCardFromBD.receiver, newCardFromBD.sender, newCardFromBD.image, newCardFromBD.text),
+            });
+            // await database().addCardToStats(newCard).then((output) => {
+            //   console.log(output);
+            // });
+          }, (err) => {
+            console.log(err)
+          });
+        }, (err) => {
+          console.log(err)
+        });
+      } else {
+        try {
+          await ack({
+            response_action: 'errors',
+            errors: {
+              'block_image': 'Vous devez remplir tous les champs'
+            }
+          });
+
+          await client.views.update({
+            view_id: homeView.view.id,
+            trigger_id: body.trigger_id,
+            view: newCardTemplate(true),
+          });
+        } catch(error) {
+          console.log(error);
         }
-      });
+      }
+    });
 
-      await client.views.update({
-        view_id: homeView.view.id,
-        trigger_id: body.trigger_id,
-        view: newCardTemplate(true),
-      });
-    } catch(error) {
-      console.log(error);
-    }
+  } catch (error) {
+    console.error(error);
   }
 });
 
@@ -122,11 +96,13 @@ app.view({ callback_id: 'confirm_image_modal', type: 'view_closed' }, async ({ a
   await ack();
 
   try {
-    newCard.image = view.blocks[1].image_url;
-    const result = await client.views.update({
-      view_id: homeView.view.id,
-      trigger_id: body.trigger_id,
-      view: newCardTemplate(false, newCard.image),
+    database().getLastUpdatedCardFromUser(body.user.id).then(async(data) => {
+      newCardFromBD = data[0];
+      const result = await client.views.update({
+        view_id: homeView.view.id,
+        trigger_id: body.trigger_id,
+        view: newCardTemplate(false, newCardFromBD.image),
+      });
     });
   } catch(error) {
     console.log(error);
@@ -137,15 +113,9 @@ app.view({ callback_id: 'confirm_image_modal', type: 'view_closed' }, async ({ a
 app.action('users_select-action', async ({ ack, body, client }) => {
   await ack();
   try {
+    const senderId = body.user?.id;
     const selectedUserId = body['actions'][0]['selected_user'];
-
-    client.users.profile.get({ user: selectedUserId }).then((selectedUser) => {
-      newCard.recipient = selectedUser.profile.real_name_normalized;
-      newCard.recipientId = selectedUserId;
-    }, (err) => {
-      console.log(err)
-    });
-
+    database().updateRecipient(senderId, selectedUserId);
   }
   catch (error) {
     console.error(error);
@@ -155,7 +125,7 @@ app.action('users_select-action', async ({ ack, body, client }) => {
 app.action('plain_text_input-action', async ({ ack, body }) => {
   await ack();
   try {
-    newCard.message = body['actions'][0]['value'];
+    database().updateMessage(body.user?.id, body['actions'][0]['value']);
   }
   catch (error) {
     console.error(error);
@@ -178,12 +148,16 @@ app.action('choose_image-action', async ({ ack, body, client }) => {
 app.action('carte-action', async ({ ack, body, client }) => {
   await ack();
   try {
-    const result = await client.views.update({
-      view_id: body.view.id,
-      trigger_id: body.trigger_id,
-      hash: body.view.hash,
-      view: confirmImageTemplate(body.actions[0].value),
+    database().updateImage(body.user?.id, body.actions[0].value).then( async () => {
+      const result = await client.views.update({
+        view_id: body.view.id,
+        trigger_id: body.trigger_id,
+        hash: body.view.hash,
+        view: confirmImageTemplate(body.actions[0].value),
+      });
     });
+
+
   } catch (error) {
     console.log(error);
   }
@@ -201,8 +175,6 @@ app.event('app_home_opened', async ({ event, client }) => {
       user_id: event.user,
       view: homeTemplate(event.user)
     });
-
-    console.log(result);
   }
   catch (error) {
     console.error(error);
@@ -211,7 +183,6 @@ app.event('app_home_opened', async ({ event, client }) => {
 
 (async () => {
   await app.start(process.env.PORT || 3000);
-  stats(database, receiver.router, app.client);
-  console.log(app);
+  // stats(database, receiver.router, app.client);
   console.log('⚡️ Bolt app is running!');
 })();

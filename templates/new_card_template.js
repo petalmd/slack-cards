@@ -67,13 +67,8 @@ module.exports = (error = false, imageUrl = null) => {
     "block_id": "block_image",
     "text": {
       "type": "mrkdwn",
-      "text": "*Vous avez choisi cette image* \nPour changer votre sélection, cliquez sur _Choisir une autre image_ (vous ne perdrez pas vos modifications en changeant de page).",
+      "text": "Image choisie :white_check_mark:",
     },
-    "accessory": {
-      "type": "image",
-      "image_url": imageUrl,
-      "alt_text": "Image choisie"
-    }
   },
   {
     "type": "actions",
@@ -98,7 +93,7 @@ module.exports = (error = false, imageUrl = null) => {
     "elements": [
       {
         "type": "plain_text",
-        "text": ":warning: Vous devez sélectionner une image",
+        "text": ":warning: Vous devez remplir tous les champs",
         "emoji": true
       }
     ]

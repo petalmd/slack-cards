@@ -8,6 +8,7 @@ function createTemplate(mostPopularRecipient, mostProlificSender) {
 
 module.exports = async(database, router, client) => {
   let mostPopularRecipient;
+  // user not found?!
 
   await database().getMostPopularRecipient().then((data) => {
     mostPopularRecipient = data.results[0].receiver_id;
