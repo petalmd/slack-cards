@@ -1,7 +1,6 @@
 const { App, ExpressReceiver } = require('@slack/bolt');
 
 const database = require("./database");
-// const stats = require("./stats/stats");
 
 const sentCardTemplate = require("./templates/sent_card_template");
 const chooseImageTemplate = require("./templates/choose_image_template");
@@ -58,9 +57,6 @@ app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ac
               channel: newCardFromBD.receiver_id,
               blocks: sentCardTemplate(newCardFromBD.receiver, newCardFromBD.sender, newCardFromBD.image, newCardFromBD.text),
             });
-            // await database().addCardToStats(newCard).then((output) => {
-            //   console.log(output);
-            // });
           }, (err) => {
             console.log(err)
           });
