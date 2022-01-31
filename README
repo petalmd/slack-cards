@@ -1,0 +1,10 @@
+# Slack App configuration
+Slash commands :
+URL/slack/events
+
+Scopes :
+-> users.profile.read
+-> chat.write.bot
+
+# Creation de la DB :
+CREATE TABLE cards (id serial primary key, image VARCHAR(255), updated_on TIMESTAMP, sender_id VARCHAR(32), receiver_id VARCHAR(32), text TEXT);

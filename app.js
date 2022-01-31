@@ -45,6 +45,9 @@ app.view({ callback_id: 'new_card_modal', type: 'view_submission' }, async ({ ac
     await database().getLastUpdatedCardFromUser(body.user.id).then( async (data) => {
       newCardFromBD = data[0];
 
+      console.log("newcardfromdb");
+      console.log(newCardFromBD);
+
       if (newCardFromBD.receiver_id && newCardFromBD.image && newCardFromBD.text) {
         await ack();
         await client.users.profile.get({ user: newCardFromBD.sender_id }).then( async (currentUser) => {
@@ -179,6 +182,6 @@ app.event('app_home_opened', async ({ event, client }) => {
 
 (async () => {
   await app.start(process.env.PORT || 3000);
-  // stats(database, receiver.router, app.client);
+  //stats(database, receiver.router, app.client);
   console.log('⚡️ Bolt app is running!');
 })();

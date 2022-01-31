@@ -1,0 +1,47 @@
+version: "3.6"
+
+services:
+  valentine-cards:
+    environment:
+      - SLACK_BOT_TOKEN=xoxb-2522091684-3040428370848-PXfdWwekMrDG4VglBL8Dn5il
+      - SLACK_SIGNING_SECRET=17fc1a79328c66d584e28695d42cf1e9
+      - DATABASE_URL=postgres://postgres:1234@postgres:5432/slack-cards
+    image: slack-cards:latest
+    networks:
+      - toolsgateway
+      - slackcards
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == docker-stg-013
+      labels:
+        traefik.enable: "true"
+        traefik.http.routers.slack-cards.entryPoints: "https"
+        traefik.http.routers.slack-cards.rule: "Host(`slack-cards.stg.petal-health.com`)"
+        traefik.http.routers.slack-cards.service: slack-cards
+        traefik.http.services.slack-cards.loadbalancer.server.port: 3000
+
+  postgres:
+    image: postgres:13
+    user: postgres
+    environment:
+      - POSTGRES_DB=slack-cards
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == docker-stg-013
+    volumes:
+      - slack-cards:/var/lib/postgresql/data/:rw
+    networks:
+      - slackcards
+
+volumes:
+  slack-cards:
+
+networks:
+  slackcards:
+  toolsgateway:
+    driver: overlay
+    external: true
