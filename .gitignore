@@ -1,3 +1,5 @@
 # node / npm
 node_modules/
 package-lock.json
+.DS_store
+**/.DS_store
